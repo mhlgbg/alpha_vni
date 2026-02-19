@@ -1,0 +1,25 @@
+# common
+node_modules/
+.env
+.env.*
+!.env.example
+.DS_Store
+*.log
+
+# build outputs
+dist/
+build/
+.cache/
+.tmp/
+
+# Strapi
+alpha-admin/.cache/
+alpha-admin/build/
+alpha-admin/dist/
+alpha-admin/.strapi/
+alpha-admin/public/uploads/
+alpha-admin/data/
+alpha-admin/database/
+
+# Vite
+alpha-internal-ui/dist/
