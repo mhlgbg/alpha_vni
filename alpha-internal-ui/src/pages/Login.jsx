@@ -3,6 +3,7 @@ import {
   CButton, CCard, CCardBody, CCardHeader, CCol,
   CContainer, CForm, CFormInput, CFormLabel, CRow
 } from "@coreui/react"
+import { Link } from "react-router-dom"
 import { loginApi } from "../api/authApi"
 import { useAuth } from "../contexts/AuthContext"
 
@@ -48,9 +49,14 @@ export default function Login() {
                   <CFormInput type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
                 </div>
                 {err ? <div className="text-danger mb-3">{err}</div> : null}
-                <CButton type="submit" color="primary" disabled={busy}>
-                  {busy ? "Đang đăng nhập..." : "Đăng nhập"}
-                </CButton>
+                <div className="d-flex flex-column align-items-start">
+                  <CButton type="submit" color="primary" disabled={busy}>
+                    {busy ? "Đang đăng nhập..." : "Đăng nhập"}
+                  </CButton>
+                  <Link to="/forgot-password" className="btn btn-link p-0 mt-2">
+                    Quên mật khẩu
+                  </Link>
+                </div>
               </CForm>
             </CCardBody>
           </CCard>

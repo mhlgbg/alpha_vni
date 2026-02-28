@@ -496,6 +496,44 @@ export interface ApiAboutAbout extends Struct.SingleTypeSchema {
   };
 }
 
+export interface ApiActivationTokenActivationToken
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'activation_tokens';
+  info: {
+    displayName: 'Activation Token';
+    pluralName: 'activation-tokens';
+    singularName: 'activation-token';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    expiresAt: Schema.Attribute.DateTime & Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::activation-token.activation-token'
+    > &
+      Schema.Attribute.Private;
+    note: Schema.Attribute.Text;
+    publishedAt: Schema.Attribute.DateTime;
+    token: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    usedAt: Schema.Attribute.DateTime;
+    user: Schema.Attribute.Relation<
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+  };
+}
+
 export interface ApiArticleArticle extends Struct.CollectionTypeSchema {
   collectionName: 'articles';
   info: {
@@ -691,6 +729,80 @@ export interface ApiDepartmentDepartment extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiFeatureGroupFeatureGroup
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'feature_groups';
+  info: {
+    description: 'Internal business collection for grouping RBAC features';
+    displayName: 'Feature Group';
+    pluralName: 'feature-groups';
+    singularName: 'feature-group';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    code: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    icon: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::feature-group.feature-group'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    order: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiFeatureFeature extends Struct.CollectionTypeSchema {
+  collectionName: 'features';
+  info: {
+    description: 'Business permission (feature-level access)';
+    displayName: 'Feature';
+    pluralName: 'features';
+    singularName: 'feature';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.Text;
+    group: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::feature-group.feature-group'
+    > &
+      Schema.Attribute.Required;
+    key: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::feature.feature'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    order: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiGlobalGlobal extends Struct.SingleTypeSchema {
   collectionName: 'globals';
   info: {
@@ -774,15 +886,21 @@ export interface ApiRequestAssigneeRequestAssignee
     singularName: 'request-assignee';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     acceptedAt: Schema.Attribute.DateTime;
+    assignedAt: Schema.Attribute.DateTime;
+    assignedBy: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     doneAt: Schema.Attribute.DateTime;
     dueAt: Schema.Attribute.DateTime;
+    isActive: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -799,6 +917,7 @@ export interface ApiRequestAssigneeRequestAssignee
         number
       >;
     publishedAt: Schema.Attribute.DateTime;
+    removedAt: Schema.Attribute.DateTime;
     request: Schema.Attribute.Relation<'manyToOne', 'api::request.request'>;
     request_assignee_status: Schema.Attribute.Enumeration<
       ['PENDING', 'ACCEPTED', 'IN_PROGRESS', 'DONE', 'BLOCKED', 'REJECTED']
@@ -880,7 +999,7 @@ export interface ApiRequestMessageRequestMessage
       true
     >;
     author: Schema.Attribute.Relation<
-      'oneToOne',
+      'manyToOne',
       'plugin::users-permissions.user'
     >;
     content: Schema.Attribute.Text;
@@ -950,7 +1069,7 @@ export interface ApiRequestRequest extends Struct.CollectionTypeSchema {
     singularName: 'request';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     amountApproved: Schema.Attribute.Decimal;
@@ -1008,6 +1127,41 @@ export interface ApiRequestRequest extends Struct.CollectionTypeSchema {
       'manyToMany',
       'plugin::users-permissions.user'
     >;
+  };
+}
+
+export interface ApiRoleFeatureRoleFeature extends Struct.CollectionTypeSchema {
+  collectionName: 'role_features';
+  info: {
+    description: 'Maps users-permissions roles to business features';
+    displayName: 'Role Feature';
+    pluralName: 'role-features';
+    singularName: 'role-feature';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    feature: Schema.Attribute.Relation<'manyToOne', 'api::feature.feature'> &
+      Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::role-feature.role-feature'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    role: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.role'
+    > &
+      Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
   };
 }
 
@@ -1616,6 +1770,10 @@ export interface PluginUsersPermissionsUser
       Schema.Attribute.SetMinMaxLength<{
         minLength: 6;
       }>;
+    fullName: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 150;
+      }>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -1672,11 +1830,14 @@ declare module '@strapi/strapi' {
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
       'api::about.about': ApiAboutAbout;
+      'api::activation-token.activation-token': ApiActivationTokenActivationToken;
       'api::article.article': ApiArticleArticle;
       'api::author.author': ApiAuthorAuthor;
       'api::category.category': ApiCategoryCategory;
       'api::department-membership.department-membership': ApiDepartmentMembershipDepartmentMembership;
       'api::department.department': ApiDepartmentDepartment;
+      'api::feature-group.feature-group': ApiFeatureGroupFeatureGroup;
+      'api::feature.feature': ApiFeatureFeature;
       'api::global.global': ApiGlobalGlobal;
       'api::lead.lead': ApiLeadLead;
       'api::request-assignee.request-assignee': ApiRequestAssigneeRequestAssignee;
@@ -1684,6 +1845,7 @@ declare module '@strapi/strapi' {
       'api::request-message.request-message': ApiRequestMessageRequestMessage;
       'api::request-tag.request-tag': ApiRequestTagRequestTag;
       'api::request.request': ApiRequestRequest;
+      'api::role-feature.role-feature': ApiRoleFeatureRoleFeature;
       'api::setting.setting': ApiSettingSetting;
       'api::vehicle-type.vehicle-type': ApiVehicleTypeVehicleType;
       'api::vehicle.vehicle': ApiVehicleVehicle;

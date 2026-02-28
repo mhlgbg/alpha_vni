@@ -26,6 +26,11 @@
       "configurable": false,
       "required": true
     },
+    "fullName": {
+      "type": "string",
+      "required": false,
+      "maxLength": 150
+    },
     "provider": {
       "type": "string",
       "configurable": false

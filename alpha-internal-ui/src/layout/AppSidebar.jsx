@@ -7,13 +7,33 @@ import {
   CNavTitle,
 } from "@coreui/react"
 import { NavLink } from "react-router-dom"
+import navigation from "../_nav"
+import { useIam } from "../contexts/IamContext"
 
 export default function AppSidebar({ visible, onVisibleChange }) {
+  const { permissionKeys, loading } = useIam()
+
+  const can = (key) => permissionKeys.includes(key)
+
   const closeOnMobile = () => {
     if (window.matchMedia("(max-width: 768px)").matches) {
       onVisibleChange(false)
     }
   }
+
+  const visibleNavItems = (loading ? [] : navigation).filter((item, index) => {
+    if (item.type === "title") {
+      for (let i = index + 1; i < navigation.length; i += 1) {
+        const next = navigation[i]
+        if (next.type === "title") break
+        if (!next.permissionKey || can(next.permissionKey)) return true
+      }
+      return false
+    }
+
+    if (!item?.permissionKey) return true
+    return can(item.permissionKey)
+  })
 
   return (
     <CSidebar
@@ -26,33 +46,21 @@ export default function AppSidebar({ visible, onVisibleChange }) {
       </CSidebarBrand>
 
       <CSidebarNav>
-        <CNavItem>
-          <NavLink className="nav-link" to="/" onClick={closeOnMobile}>
-            Dashboard
-          </NavLink>
-        </CNavItem>
+        {visibleNavItems.map((item, index) => {
+          const key = `${item.type}-${item.name}-${index}`
 
-        <CNavTitle>Request</CNavTitle>
+          if (item.type === "title") {
+            return <CNavTitle key={key}>{item.name}</CNavTitle>
+          }
 
-        <CNavItem>
-          <NavLink className="nav-link" to="/requests" onClick={closeOnMobile}>
-            Danh sách yêu cầu
-          </NavLink>
-        </CNavItem>
-
-        <CNavItem>
-          <NavLink className="nav-link" to="/request-categories" onClick={closeOnMobile}>
-            Loại công việc
-          </NavLink>
-        </CNavItem>
-
-        <CNavTitle>Hệ thống</CNavTitle>
-
-        <CNavItem>
-          <NavLink className="nav-link" to="/users" onClick={closeOnMobile}>
-            Người dùng
-          </NavLink>
-        </CNavItem>
+          return (
+            <CNavItem key={key}>
+              <NavLink className="nav-link" to={item.to} onClick={closeOnMobile}>
+                {item.name}
+              </NavLink>
+            </CNavItem>
+          )
+        })}
       </CSidebarNav>
     </CSidebar>
   )

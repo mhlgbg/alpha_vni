@@ -7,7 +7,7 @@
     "displayName": "RequestAssignee"
   },
   "options": {
-    "draftAndPublish": true
+    "draftAndPublish": false
   },
   "pluginOptions": {},
   "attributes": {
@@ -22,6 +22,21 @@
       "relation": "manyToOne",
       "target": "api::request.request",
       "inversedBy": "request_assignees"
+    },
+    "assignedBy": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "assignedAt": {
+      "type": "datetime"
+    },
+    "removedAt": {
+      "type": "datetime"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true
     },
     "roleType": {
       "type": "enumeration",

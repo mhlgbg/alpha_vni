@@ -1,5 +1,33 @@
 import axios from "axios"
 
+const AUTH_HEADER_EXCLUDED_PATHS = new Set([
+  "/api/auth/local",
+  "/api/auth/activate",
+  "/api/auth/reset-password",
+  "/api/auth/forgot-password",
+])
+
+function shouldSkipAuthHeader(url) {
+  if (!url) return false
+
+  let pathname = ""
+  try {
+    pathname = new URL(url, "http://localhost").pathname
+  } catch {
+    return false
+  }
+
+  const normalizedPath = pathname.replace(/\/+$/, "") || "/"
+  const apiPathVariant = normalizedPath.startsWith("/api")
+    ? normalizedPath
+    : `/api${normalizedPath}`
+
+  return (
+    AUTH_HEADER_EXCLUDED_PATHS.has(normalizedPath) ||
+    AUTH_HEADER_EXCLUDED_PATHS.has(apiPathVariant)
+  )
+}
+
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
   timeout: 30000,
@@ -7,7 +35,9 @@ const api = axios.create({
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token")
-  if (token) config.headers.Authorization = `Bearer ${token}`
+  if (token && !shouldSkipAuthHeader(config.url)) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
   return config
 })
 
@@ -17,6 +47,8 @@ api.interceptors.response.use(
     if (err?.response?.status === 401) {
       localStorage.removeItem("token")
       localStorage.removeItem("me")
+      localStorage.removeItem("permissionKeys")
+      localStorage.removeItem("iamRole")
       if (!window.location.pathname.includes("/login")) {
         window.location.href = "/login"
       }

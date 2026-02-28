@@ -32,6 +32,27 @@ npm run build
 yarn build
 ```
 
+## 📧 Email (Gmail SMTP)
+
+Project này dùng `@strapi/provider-email-nodemailer` để gửi mail qua Gmail SMTP.
+
+Thêm vào file `.env`:
+
+```env
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your_gmail@gmail.com
+SMTP_PASS=your_app_password
+SMTP_FROM=your_gmail@gmail.com
+SMTP_REPLY_TO=your_gmail@gmail.com
+```
+
+Lưu ý:
+
+- Nên dùng **Gmail App Password** (yêu cầu bật **2FA**) cho `SMTP_PASS`.
+- Không nên dùng mật khẩu Gmail thường vì dễ gặp lỗi xác thực `534`.
+
 ## ⚙️ Deployment
 
 Strapi gives you many possible deployment options for your project including [Strapi Cloud](https://cloud.strapi.io). Browse the [deployment section of the documentation](https://docs.strapi.io/dev-docs/deployment) to find the best solution for your use case.
