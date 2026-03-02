@@ -3,15 +3,16 @@ type PolicyConfig = {
 };
 
 export default async (policyContext, config: PolicyConfig = {}) => {
+  const { ctx } = policyContext;
   const requiredKey = config?.key;
 
   if (!requiredKey) {
-    return policyContext.forbidden('Permission key is required');
+    return ctx.forbidden('Permission key is required');
   }
 
   const authUser = policyContext.state?.user;
   if (!authUser?.id) {
-    return policyContext.forbidden('Forbidden');
+    return ctx.forbidden('Forbidden');
   }
 
   const user = await strapi.db.query('plugin::users-permissions.user').findOne({
@@ -21,7 +22,7 @@ export default async (policyContext, config: PolicyConfig = {}) => {
 
   const roleId = user?.role?.id;
   if (!roleId) {
-    return policyContext.forbidden('Forbidden');
+    return ctx.forbidden('Forbidden');
   }
 
   const mappings = await strapi.db.query('api::role-feature.role-feature').findMany({
@@ -36,7 +37,7 @@ export default async (policyContext, config: PolicyConfig = {}) => {
   );
 
   if (!permissionKeys.has(requiredKey)) {
-    return policyContext.forbidden('Forbidden');
+    return ctx.forbidden('Forbidden');
   }
 
   return true;

@@ -1,5 +1,23 @@
 import axios from "axios"
 
+function normalizeApiBaseUrl(rawUrl) {
+  if (!rawUrl) return rawUrl
+
+  try {
+    const parsed = new URL(rawUrl)
+    const path = parsed.pathname.replace(/\/+$/, "")
+
+    if (!path || path === "/") {
+      parsed.pathname = "/api"
+      return parsed.toString().replace(/\/$/, "")
+    }
+
+    return parsed.toString().replace(/\/$/, "")
+  } catch {
+    return rawUrl
+  }
+}
+
 const AUTH_HEADER_EXCLUDED_PATHS = new Set([
   "/api/auth/local",
   "/api/auth/activate",
@@ -29,7 +47,7 @@ function shouldSkipAuthHeader(url) {
 }
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+  baseURL: normalizeApiBaseUrl(import.meta.env.VITE_API_BASE_URL),
   timeout: 30000,
 })
 

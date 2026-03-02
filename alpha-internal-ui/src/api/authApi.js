@@ -13,8 +13,17 @@ export async function loginApi(identifier, password) {
 }
 
 export async function meApi() {
-  const res = await axios.get("/me")
-  return res.data
+  try {
+    const res = await axios.get("/me")
+    return res.data
+  } catch (error) {
+    if (error?.response?.status !== 404) {
+      throw error
+    }
+
+    const fallbackRes = await axios.get("/users/me")
+    return fallbackRes.data
+  }
 }
 
 export async function forgotPasswordApi(email) {
