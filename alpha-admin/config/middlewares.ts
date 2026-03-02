@@ -2,7 +2,21 @@ export default [
   'strapi::logger',
   'strapi::errors',
   'strapi::security',
-  'strapi::cors',
+  {
+    name: 'strapi::cors',
+    config: {
+      origin: [
+        'http://admin.alphavni.com', // Strapi admin qua IIS
+        'http://one.alphavni.com', // nếu frontend đang chạy port này
+        'http://alphavni.com',      // nếu có domain không kèm port
+        'https://alphavni.com',     // nếu sau này bật https
+      ],
+      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+      headers: '*',
+      credentials: true,
+      keepHeaderOnError: true,
+    },
+  },
   'strapi::poweredBy',
   'strapi::query',
   'strapi::body',
