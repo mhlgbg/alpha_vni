@@ -31,10 +31,10 @@ export default function Profile() {
 
   if (!me || loading) {
     return (
-      <CContainer className="py-5">
+      <CContainer className="py-5 ai-card ai-form">
         <CRow className="justify-content-center">
           <CCol md={6} style={{ maxWidth: 800, width: "100%" }}>
-            <CCard>
+            <CCard className="ai-card">
               <CCardBody>
                 <small>Đang tải…</small>
               </CCardBody>
@@ -46,10 +46,10 @@ export default function Profile() {
   }
 
   return (
-    <CContainer className="py-5">
+    <CContainer className="py-5 ai-card ai-form">
       <CRow className="justify-content-center">
         <CCol md={8} style={{ maxWidth: 800, width: "100%" }}>
-          <CCard>
+          <CCard className="ai-card">
             <CCardHeader><b>Thông tin tài khoản</b></CCardHeader>
             <CCardBody>
               <div className="mb-3">

@@ -91,6 +91,24 @@
     "closedAt": {
       "type": "datetime"
     },
+    "closedDecision": {
+      "type": "enumeration",
+      "enum": [
+        "APPROVED",
+        "REJECTED"
+      ]
+    },
+    "closedBy": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "closeNote": {
+      "type": "text"
+    },
+    "submittedAt": {
+      "type": "datetime"
+    },
     "request_assignees": {
       "type": "relation",
       "relation": "oneToMany",

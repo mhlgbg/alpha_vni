@@ -16,47 +16,30 @@ export default {
    * This gives you an opportunity to set up your data model,
    * run jobs, or perform some special logic.
    */
-  bootstrap({ strapi } /* : { strapi: Core.Strapi } */) {
-    console.log(Object.keys((strapi as any).apis ?? {}));
-    console.log('HAS API me:', !!(strapi as any).apis?.me);
-    console.log('HAS API auth-extended:', !!(strapi as any).apis?.['auth-extended']);
+  async bootstrap({ strapi } /* : { strapi: Core.Strapi } */) {
+    const frontendUrlRaw = process.env.FRONTEND_URL?.trim();
+    const frontendUrl = frontendUrlRaw?.replace(/\/+$/, '');
 
-    const stack = (strapi as any)?.server?.router?.stack ?? [];
-
-    const matchedPaths = Array.from(
-      new Set(
-        stack
-          .map((layer: any) => layer?.path)
-          .filter((path: unknown) => typeof path === 'string' && path.includes('/me'))
-      )
-    );
-
-    if (matchedPaths.length === 0) {
-      strapi.log.info('[bootstrap] Routes containing "/me": none found');
+    if (!frontendUrl) {
+      strapi.log.warn('[bootstrap] FRONTEND_URL is empty, skip users-permissions reset password URL sync');
       return;
     }
 
-    strapi.log.info('[bootstrap] Routes containing "/me":');
-    matchedPaths.forEach((path) => {
-      strapi.log.info(`- ${path}`);
-    });
+    const resetPasswordUrl = `${frontendUrl}/reset-password`;
 
-    const authMatchedPaths = Array.from(
-      new Set(
-        stack
-          .map((layer: any) => layer?.path)
-          .filter((path: unknown) => typeof path === 'string' && path.includes('/auth'))
-      )
-    );
+    const pluginStore = strapi.store({ type: 'plugin', name: 'users-permissions' });
+    const advanced = ((await pluginStore.get({ key: 'advanced' })) || {}) as Record<string, unknown>;
 
-    if (authMatchedPaths.length === 0) {
-      strapi.log.info('[bootstrap] Routes containing "/auth": none found');
-      return;
+    if (!advanced.email_reset_password) {
+      await pluginStore.set({
+        key: 'advanced',
+        value: {
+          ...advanced,
+          email_reset_password: resetPasswordUrl,
+        },
+      });
+
+      strapi.log.info(`[bootstrap] users-permissions advanced.email_reset_password set to ${resetPasswordUrl}`);
     }
-
-    strapi.log.info('[bootstrap] Routes containing "/auth":');
-    authMatchedPaths.forEach((path) => {
-      strapi.log.info(`- ${path}`);
-    });
   },
 };

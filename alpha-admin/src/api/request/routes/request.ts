@@ -1,12 +1,3 @@
-const requestsPolicy = [
-	{
-		name: 'global::has-permission',
-		config: {
-			key: 'requests',
-		},
-	},
-];
-
 export default {
 	routes: [
 		{
@@ -15,7 +6,6 @@ export default {
 			handler: 'request.find',
 			config: {
 				auth: { scope: [] },
-				policies: requestsPolicy,
 			},
 		},
 		{
@@ -24,7 +14,6 @@ export default {
 			handler: 'request.findOne',
 			config: {
 				auth: { scope: [] },
-				policies: requestsPolicy,
 			},
 		},
 		{
@@ -33,7 +22,6 @@ export default {
 			handler: 'request.create',
 			config: {
 				auth: { scope: [] },
-				policies: requestsPolicy,
 			},
 		},
 		{
@@ -42,7 +30,6 @@ export default {
 			handler: 'request.update',
 			config: {
 				auth: { scope: [] },
-				policies: requestsPolicy,
 			},
 		},
 		{
@@ -51,7 +38,14 @@ export default {
 			handler: 'request.updateStatus',
 			config: {
 				auth: { scope: [] },
-				policies: requestsPolicy,
+			},
+		},
+		{
+			method: 'POST',
+			path: '/requests/:id/close',
+			handler: 'request.close',
+			config: {
+				auth: { scope: [] },
 			},
 		},
 		{
@@ -60,7 +54,6 @@ export default {
 			handler: 'request.addAssignee',
 			config: {
 				auth: { scope: [] },
-				policies: requestsPolicy,
 			},
 		},
 		{
@@ -69,7 +62,6 @@ export default {
 			handler: 'request.removeAssignee',
 			config: {
 				auth: { scope: [] },
-				policies: requestsPolicy,
 			},
 		},
 		{
@@ -78,7 +70,6 @@ export default {
 			handler: 'request.listMessages',
 			config: {
 				auth: { scope: [] },
-				policies: requestsPolicy,
 			},
 		},
 		{
@@ -87,7 +78,6 @@ export default {
 			handler: 'request.createMessage',
 			config: {
 				auth: { scope: [] },
-				policies: requestsPolicy,
 			},
 		},
 	],

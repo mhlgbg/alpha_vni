@@ -27,10 +27,36 @@ function normalizeUserBasic(user: any) {
 	};
 }
 
+function normalizeMediaBasic(file: any) {
+	if (!file) return null;
+	return {
+		id: file.id,
+		name: file.name,
+		url: file.url,
+		mime: file.mime,
+	};
+}
+
 function getRelationId(value: any) {
 	if (!value) return null;
 	if (typeof value === 'number' || typeof value === 'string') return value;
 	return value.id ?? value.documentId ?? null;
+}
+
+function toAttachmentIds(value: unknown): number[] {
+	if (!Array.isArray(value)) return [];
+
+	return value
+		.map((item: unknown) => {
+			if (typeof item === 'number') return item;
+			if (typeof item === 'string') return Number(item);
+			if (item && typeof item === 'object') {
+				const id = (item as { id?: number | string }).id;
+				return typeof id === 'string' ? Number(id) : id;
+			}
+			return NaN;
+		})
+		.filter((id: unknown): id is number => Number.isInteger(id) && Number(id) > 0);
 }
 
 function hasActiveFlag() {
@@ -39,8 +65,8 @@ function hasActiveFlag() {
 
 async function isActiveAssignee(requestId: number, userId: number) {
 	const where: Record<string, unknown> = {
-		request: requestId,
-		user: userId,
+		request: { id: requestId },
+		user: { id: userId },
 	};
 
 	if (hasActiveFlag()) {
@@ -84,8 +110,10 @@ export default {
 		const keyword = typeof ctx.query?.keyword === 'string' ? ctx.query.keyword.trim() : '';
 		const requesterId = parsePositiveInt(ctx.query?.requesterId, 0);
 		const status = typeof ctx.query?.status === 'string' ? ctx.query.status.trim() : '';
+		const scopeInput = typeof ctx.query?.scope === 'string' ? ctx.query.scope.trim().toUpperCase() : 'RELEVANT';
+		const scope = ['MINE', 'ASSIGNED', 'WATCHING', 'RELEVANT'].includes(scopeInput) ? scopeInput : 'RELEVANT';
 
-		const assigneeWhere: Record<string, unknown> = { user: userId };
+		const assigneeWhere: Record<string, unknown> = { user: { id: userId } };
 		if (hasActiveFlag()) {
 			assigneeWhere.isActive = true;
 		}
@@ -103,9 +131,23 @@ export default {
 			)
 		);
 
-		const accessOr: Record<string, unknown>[] = [{ requester: userId }];
-		if (assignedRequestIds.length > 0) {
-			accessOr.push({ id: { $in: assignedRequestIds } });
+		const accessOr: Record<string, unknown>[] = [];
+		if (scope === 'MINE') {
+			accessOr.push({ requester: { id: userId } });
+		} else if (scope === 'ASSIGNED') {
+			if (assignedRequestIds.length > 0) {
+				accessOr.push({ id: { $in: assignedRequestIds } });
+			} else {
+				accessOr.push({ id: { $in: [0] } });
+			}
+		} else if (scope === 'WATCHING') {
+			accessOr.push({ watchers: { id: userId } });
+		} else {
+			accessOr.push({ requester: { id: userId } });
+			if (assignedRequestIds.length > 0) {
+				accessOr.push({ id: { $in: assignedRequestIds } });
+			}
+			accessOr.push({ watchers: { id: userId } });
 		}
 
 		const andWhere: Record<string, unknown>[] = [{ $or: accessOr }];
@@ -113,7 +155,7 @@ export default {
 		if (fromDateIso) andWhere.push({ createdAt: { $gte: fromDateIso } });
 		if (toDateIso) andWhere.push({ createdAt: { $lte: toDateIso } });
 		if (keyword) andWhere.push({ title: { $containsi: keyword } });
-		if (requesterId > 0) andWhere.push({ requester: requesterId });
+		if (requesterId > 0) andWhere.push({ requester: { id: requesterId } });
 		if (status) andWhere.push({ request_status: status });
 
 		const where = andWhere.length > 1 ? { $and: andWhere } : andWhere[0];
@@ -191,7 +233,7 @@ export default {
 
 		const request = await strapi.db.query(REQUEST_UID).findOne({
 			where: { id: requestId },
-			populate: ['requester', 'request_category', 'request_tags'],
+			populate: ['requester', 'request_category', 'request_tags', 'closedBy', 'attachments'],
 		});
 
 		const assigneeWhere: Record<string, unknown> = { request: requestId };
@@ -211,15 +253,19 @@ export default {
 				visibility: true,
 			},
 			orderBy: { createdAt: 'asc' },
-			populate: ['author'],
+			populate: ['author', 'attachments'],
 		});
 
 		ctx.body = {
 			data: {
 				...request,
 				requester: normalizeUserBasic(request?.requester),
+				closedBy: normalizeUserBasic((request as any)?.closedBy),
 				category: request?.request_category,
 				tags: request?.request_tags || [],
+				attachments: Array.isArray((request as any)?.attachments)
+					? (request as any).attachments.map((file: any) => normalizeMediaBasic(file)).filter(Boolean)
+					: [],
 				request_assignees: assignees.map((item: any) => ({
 					id: item.id,
 					user: normalizeUserBasic(item.user),
@@ -228,6 +274,7 @@ export default {
 					roleType: item.roleType,
 					assignedBy: normalizeUserBasic(item.assignedBy),
 					assignedAt: item.assignedAt,
+					dueAt: item.dueAt,
 					isActive: item.isActive,
 				})),
 				request_messages: messages.map((item: any) => ({
@@ -235,6 +282,10 @@ export default {
 					author: normalizeUserBasic(item.author),
 					content: item.content,
 					createdAt: item.createdAt,
+					attachments: Array.isArray(item.attachments)
+						? item.attachments.map((file: any) => normalizeMediaBasic(file)).filter(Boolean)
+						: [],
+					isSystem: item.isSystem ?? false,
 				})),
 			},
 		};
@@ -279,9 +330,13 @@ export default {
 			data.currency = body.currency.trim();
 		}
 
+		if (Array.isArray(body.attachments)) {
+			data.attachments = toAttachmentIds(body.attachments);
+		}
+
 		const created = await strapi.db.query(REQUEST_UID).create({
 			data,
-			populate: ['requester', 'request_category', 'request_tags'],
+			populate: ['requester', 'request_category', 'request_tags', 'attachments'],
 		});
 
 		ctx.body = {
@@ -334,10 +389,14 @@ export default {
 			data.currency = typeof body.currency === 'string' && body.currency.trim() ? body.currency.trim() : null;
 		}
 
+		if (body.attachments !== undefined) {
+			data.attachments = toAttachmentIds(body.attachments);
+		}
+
 		const updated = await strapi.db.query(REQUEST_UID).update({
 			where: { id: requestId },
 			data,
-			populate: ['requester', 'request_category', 'request_tags'],
+			populate: ['requester', 'request_category', 'request_tags', 'attachments'],
 		});
 
 		ctx.body = {
@@ -362,21 +421,77 @@ export default {
 			return ctx.badRequest('Invalid status');
 		}
 
+		const closeDecision =
+			typeof ctx.request.body?.closedDecision === 'string' ? ctx.request.body.closedDecision.trim() : undefined;
+		const closeNote = typeof ctx.request.body?.closeNote === 'string' ? ctx.request.body.closeNote : undefined;
+		const amountApproved = ctx.request.body?.amountApproved;
+
 		const access = await canAccessRequest(requestId, Number(authUser.id));
 		if (!access.request) return ctx.notFound('Request not found');
 		if (!access.allowed) return ctx.forbidden('Forbidden');
 
+		if (access.request?.request_status === 'CLOSED' && status !== 'CLOSED') {
+			return ctx.badRequest('Request is CLOSED and cannot be reopened in V1');
+		}
+
+		const updateData: Record<string, unknown> = { request_status: status };
+
+		if (status === 'CLOSED') {
+			updateData.closedBy = Number(authUser.id);
+			if (closeDecision) updateData.closedDecision = closeDecision;
+			if (closeNote !== undefined) updateData.closeNote = closeNote;
+			if (amountApproved !== undefined) updateData.amountApproved = amountApproved;
+		}
+
 		const updated = await strapi.db.query(REQUEST_UID).update({
 			where: { id: requestId },
-			data: { request_status: status },
+			data: updateData,
 		});
 
 		ctx.body = {
 			data: {
 				id: updated.id,
 				request_status: updated.request_status,
+				closedDecision: (updated as any).closedDecision,
+				closedBy: getRelationId((updated as any).closedBy),
+				closedAt: (updated as any).closedAt,
+				amountApproved: (updated as any).amountApproved,
 			},
 		};
+	},
+
+	async close(ctx) {
+		const authUser = ctx.state.user;
+		if (!authUser?.id) return ctx.unauthorized('Unauthorized');
+
+		const { closedDecision, amountApproved, closeNote } = ctx.request.body || {};
+
+		const result = await strapi.service(REQUEST_UID).closeRequest(ctx.params.id, authUser.id, {
+			closedDecision,
+			amountApproved,
+			closeNote,
+		});
+
+		if (!result?.ok) {
+			const status = Number(result?.status || 400);
+			ctx.status = status;
+			ctx.body = {
+				data: null,
+				error: {
+					status,
+					name: status === 409 ? 'ConflictError' : 'ApplicationError',
+					message: result?.body?.message || 'Close request failed',
+					details: {
+						closedBy: result?.body?.closedBy || null,
+						closedAt: result?.body?.closedAt || null,
+						closedDecision: result?.body?.closedDecision || null,
+					},
+				},
+			};
+			return;
+		}
+
+		ctx.body = result.body;
 	},
 
 	async addAssignee(ctx) {
@@ -430,6 +545,7 @@ export default {
 		const roleType = typeof ctx.request.body?.role === 'string' ? ctx.request.body.role.trim() : '';
 		const roleEnum: string[] =
 			(strapi.getModel(ASSIGNEE_UID)?.attributes?.roleType?.enum as string[] | undefined) || [];
+		const dueAtInput = typeof ctx.request.body?.dueAt === 'string' ? ctx.request.body.dueAt.trim() : '';
 
 		const data: Record<string, unknown> = {
 			request: requestId,
@@ -441,6 +557,14 @@ export default {
 
 		if (roleType && roleEnum.includes(roleType)) {
 			data.roleType = roleType;
+		}
+
+		if (dueAtInput) {
+			const dueAtDate = new Date(dueAtInput);
+			if (Number.isNaN(dueAtDate.getTime())) {
+				return ctx.badRequest('Invalid dueAt');
+			}
+			data.dueAt = dueAtDate.toISOString();
 		}
 
 		const created = await strapi.db.query(ASSIGNEE_UID).create({
@@ -514,7 +638,7 @@ export default {
 				visibility: true,
 			},
 			orderBy: { createdAt: 'asc' },
-			populate: ['author'],
+			populate: ['author', 'attachments'],
 		});
 
 		ctx.body = {
@@ -523,6 +647,10 @@ export default {
 				content: item.content,
 				createdAt: item.createdAt,
 				author: normalizeUserBasic(item.author),
+				attachments: Array.isArray(item.attachments)
+					? item.attachments.map((file: any) => normalizeMediaBasic(file)).filter(Boolean)
+					: [],
+				isSystem: item.isSystem ?? false,
 			})),
 		};
 	},
@@ -545,14 +673,21 @@ export default {
 			return ctx.badRequest('content is required');
 		}
 
+		const attachmentIds = Array.isArray(ctx.request.body?.attachments)
+			? ctx.request.body.attachments
+					.map((id: unknown) => Number(id))
+					.filter((id: number) => Number.isInteger(id) && id > 0)
+			: [];
+
 		const created = await strapi.db.query(MESSAGE_UID).create({
 			data: {
 				request: requestId,
 				author: Number(authUser.id),
 				content,
 				visibility: true,
+				attachments: attachmentIds,
 			},
-			populate: ['author'],
+			populate: ['author', 'attachments'],
 		});
 
 		ctx.body = {
@@ -561,6 +696,10 @@ export default {
 				content: created.content,
 				createdAt: created.createdAt,
 				author: normalizeUserBasic(created.author),
+				attachments: Array.isArray((created as any).attachments)
+					? (created as any).attachments.map((file: any) => normalizeMediaBasic(file)).filter(Boolean)
+					: [],
+				isSystem: (created as any).isSystem ?? false,
 			},
 		};
 	},

@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { ensureUserHasAuthenticatedRole } from '../services/ensure-authenticated-role';
 
 export default {
   async activate(ctx) {
@@ -35,10 +36,12 @@ export default {
         return ctx.badRequest('Invalid token');
       }
 
-      await strapi.db.query('plugin::users-permissions.user').update({
-        where: { id: userId },
-        data: { confirmed: true },
-      });
+      const numericUserId = Number(userId);
+      if (!Number.isInteger(numericUserId) || numericUserId <= 0) {
+        return ctx.badRequest('Invalid token');
+      }
+
+      const roleAssignmentResult = await ensureUserHasAuthenticatedRole(strapi, numericUserId);
 
       await strapi.db.query('api::activation-token.activation-token').update({
         where: { id: activationToken.id },
@@ -67,10 +70,16 @@ export default {
         userUpdateData.resetPasswordTokenExpiration = resetPasswordTokenExpiration;
       }
 
-      await strapi.db.query('plugin::users-permissions.user').update({
-        where: { id: userId },
-        data: userUpdateData,
+      await strapi.entityService.update('plugin::users-permissions.user', numericUserId, {
+        data: {
+          confirmed: true,
+          ...userUpdateData,
+        },
       });
+
+      strapi.log.info(
+        `[auth.activate] userId=${numericUserId} hasRoleBefore=${roleAssignmentResult.hasRoleBefore} roleAssigned=${roleAssignmentResult.roleAssigned}`
+      );
 
       ctx.body = {
         ok: true,

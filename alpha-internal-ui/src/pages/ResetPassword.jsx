@@ -59,10 +59,10 @@ export default function ResetPassword() {
   }
 
   return (
-    <CContainer className="py-5">
+    <CContainer className="py-5 ai-card ai-form">
       <CRow className="justify-content-center">
         <CCol md={6} style={{ maxWidth: 500, width: "100%" }}>
-          <CCard>
+          <CCard className="ai-card">
             <CCardHeader><b>Alpha Internal</b> — Đặt lại mật khẩu</CCardHeader>
             <CCardBody>
               {success ? (
@@ -71,7 +71,7 @@ export default function ResetPassword() {
                   <Link to="/login" className="btn btn-primary">Về trang đăng nhập</Link>
                 </div>
               ) : (
-                <CForm onSubmit={onSubmit}>
+                <CForm onSubmit={onSubmit} className="ai-form">
                   <div className="mb-3">
                     <CFormLabel>Mật khẩu mới</CFormLabel>
                     <CFormInput

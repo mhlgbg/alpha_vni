@@ -1079,6 +1079,12 @@ export interface ApiRequestRequest extends Struct.CollectionTypeSchema {
       true
     >;
     closedAt: Schema.Attribute.DateTime;
+    closedBy: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    closedDecision: Schema.Attribute.Enumeration<['APPROVED', 'REJECTED']>;
+    closeNote: Schema.Attribute.Text;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1118,6 +1124,7 @@ export interface ApiRequestRequest extends Struct.CollectionTypeSchema {
       'manyToOne',
       'plugin::users-permissions.user'
     >;
+    submittedAt: Schema.Attribute.DateTime;
     title: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &

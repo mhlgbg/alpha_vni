@@ -13,7 +13,9 @@ export default async (policyContext, config: PolicyConfig = {}) => {
     if (typeof ctx?.throw === 'function') {
       return ctx.throw(401, message);
     }
-    return false;
+    const error = new Error(message) as Error & { status?: number };
+    error.status = 401;
+    throw error;
   };
 
   const forbidden = (message = 'Forbidden') => {
@@ -23,7 +25,9 @@ export default async (policyContext, config: PolicyConfig = {}) => {
     if (typeof ctx?.throw === 'function') {
       return ctx.throw(403, message);
     }
-    return false;
+    const error = new Error(message) as Error & { status?: number };
+    error.status = 403;
+    throw error;
   };
 
   const requiredKey = config?.key;
@@ -59,7 +63,7 @@ export default async (policyContext, config: PolicyConfig = {}) => {
   );
 
   if (!permissionKeys.has(requiredKey)) {
-    return forbidden('Forbidden');
+    return forbidden(`Forbidden: missing permission '${requiredKey}'`);
   }
 
   return true;

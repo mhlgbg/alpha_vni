@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react"
 import {
+  CButton,
   CCard,
   CCardBody,
   CCardHeader,
   CCol,
+  CFormSelect,
   CFormInput,
-  CInputGroup,
-  CInputGroupText,
   CRow,
   CSpinner,
   CTable,
@@ -19,8 +19,6 @@ import {
   CPaginationItem,
   CBadge,
 } from "@coreui/react"
-import CIcon from "@coreui/icons-react"
-import { cilSearch } from "@coreui/icons"
 
 import { getRequestCategories } from "../services/requestCategoryService"
 
@@ -30,7 +28,7 @@ export default function RequestCategories() {
   const [meta, setMeta] = useState(null)
 
   const [page, setPage] = useState(1)
-  const [pageSize] = useState(10)
+  const [pageSize, setPageSize] = useState(10)
 
   const [q, setQ] = useState("")
   const [qDraft, setQDraft] = useState("")
@@ -71,6 +69,19 @@ export default function RequestCategories() {
     setQ(qDraft.trim())
   }
 
+  const onReset = () => {
+    setPage(1)
+    setQ("")
+    setQDraft("")
+  }
+
+  const onChangePageSize = (event) => {
+    const nextSize = Number(event.target.value)
+    if (!Number.isInteger(nextSize) || nextSize <= 0) return
+    setPage(1)
+    setPageSize(nextSize)
+  }
+
   const onKeyDownSearch = (e) => {
     if (e.key === "Enter") applySearch()
   }
@@ -106,32 +117,39 @@ export default function RequestCategories() {
   return (
     <CRow className="justify-content-center">
       <CCol xs={12} style={{ maxWidth: 1200 }}>
-        <CCard className="mb-4">
-          <CCardHeader className="d-flex align-items-center justify-content-between">
-            <div>
-              <strong>Loại công việc</strong>{" "}
-              <CBadge color="secondary" className="ms-2">
-                {fromToText}
-              </CBadge>
-            </div>
-
-            <div style={{ width: 420, maxWidth: "100%" }}>
-              <CInputGroup>
+        <CCard className="mb-4 ai-card">
+          <CCardHeader>
+            <strong>Bộ lọc</strong>
+          </CCardHeader>
+          <CCardBody>
+            <CRow className="g-3 ai-form align-items-end">
+              <CCol md={8} lg={6}>
                 <CFormInput
+                  label="Từ khóa"
                   placeholder="Tìm theo từ khóa (tên, mã...)"
                   value={qDraft}
                   onChange={(e) => setQDraft(e.target.value)}
                   onKeyDown={onKeyDownSearch}
                 />
-                <CInputGroupText
-                  role="button"
-                  title="Tìm kiếm"
-                  onClick={applySearch}
-                >
-                  <CIcon icon={cilSearch} />
-                </CInputGroupText>
-              </CInputGroup>
+              </CCol>
+              <CCol xs={12} className="d-flex justify-content-end gap-2">
+                <CButton color="primary" onClick={applySearch} disabled={loading}>Search</CButton>
+                <CButton color="secondary" variant="outline" onClick={onReset} disabled={loading}>Reset</CButton>
+              </CCol>
+            </CRow>
+          </CCardBody>
+        </CCard>
+
+        <CCard className="mb-4 ai-card">
+          <CCardHeader className="d-flex align-items-center justify-content-between">
+            <div>
+              <strong>Loại công việc</strong>{" "}
+              <CBadge color="secondary" className="ms-2">
+                {total}
+              </CBadge>
             </div>
+
+            <div className="text-body-secondary small">{fromToText}</div>
           </CCardHeader>
 
           <CCardBody>
@@ -142,7 +160,7 @@ export default function RequestCategories() {
               </div>
             ) : (
               <>
-                <CTable hover responsive className="mb-3">
+                <CTable hover responsive className="mb-3 ai-table">
                   <CTableHead>
                     <CTableRow>
                       <CTableHeaderCell style={{ width: 70 }}>#</CTableHeaderCell>
@@ -188,7 +206,7 @@ export default function RequestCategories() {
                             <CTableDataCell>{parentName}</CTableDataCell>
                             <CTableDataCell>{description}</CTableDataCell>
                             <CTableDataCell>
-                              <CBadge color={isActive ? "success" : "secondary"}>
+                              <CBadge color={isActive ? "success" : "secondary"} className={`ai-status-badge ${isActive ? "ai-status-done" : "ai-status-cancelled"}`}>
                                 {isActive ? "Đang dùng" : "Tạm ngưng"}
                               </CBadge>
                             </CTableDataCell>
@@ -200,7 +218,16 @@ export default function RequestCategories() {
                   </CTableBody>
                 </CTable>
 
-                <div className="d-flex justify-content-end">
+                <div className="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                  <div className="d-flex align-items-center gap-2 ai-form">
+                    <span>Page size</span>
+                    <CFormSelect value={pageSize} onChange={onChangePageSize} style={{ width: 100 }}>
+                      <option value={10}>10</option>
+                      <option value={20}>20</option>
+                      <option value={50}>50</option>
+                    </CFormSelect>
+                  </div>
+
                   <CPagination align="end" className="mb-0">
                     <CPaginationItem
                       disabled={page <= 1 || loading}

@@ -34,25 +34,24 @@ if (!global.__SMTP_DEBUG_PATCHED__) {
 }
 
 export default ({ env }) => ({
-    email: {
-        config: {
-            provider: "@strapi/provider-email-nodemailer",
-            providerOptions: {
-                host: env("SMTP_HOST"),
-                port: env.int("SMTP_PORT"),
-                secure: env.bool("SMTP_SECURE"),
-                auth: {
-                    user: env("SMTP_USER"),
-                    pass: env("SMTP_PASS"),
-                },
-                envelope: {
-                    from: env("SMTP_USER"),
-                },
-            },
-            settings: {
-                defaultFrom: env("SMTP_USER"),
-                defaultReplyTo: env("SMTP_REPLY_TO", env("SMTP_USER")),
-            },
+  email: {
+    config: {
+      provider: "@strapi/provider-email-nodemailer",
+      providerOptions: {
+        host: env("SMTP_HOST"),
+        port: env.int("SMTP_PORT"),
+        secure: env.bool("SMTP_SECURE"),
+        auth: {
+          user: env("SMTP_USER"),
+          pass: env("SMTP_PASS"),
         },
+        // ❌ bỏ envelope ở đây (nodemailer không áp envelope ở transporter options)
+      },
+      settings: {
+        // ✅ ép from chỉ là email thuần, KHÔNG kèm display name
+        defaultFrom: env("SMTP_USER"),
+        defaultReplyTo: env("SMTP_REPLY_TO", env("SMTP_USER")),
+      },
     },
-})
+  },
+});

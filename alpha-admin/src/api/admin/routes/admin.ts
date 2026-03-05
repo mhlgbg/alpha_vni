@@ -8,14 +8,6 @@ export default {
         auth: {
           scope: [],
         },
-        policies: [
-          {
-            name: 'global::has-permission',
-            config: {
-              key: 'invite-user',
-            },
-          },
-        ],
       },
     },
   ],

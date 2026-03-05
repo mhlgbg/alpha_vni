@@ -1,12 +1,24 @@
 const navigation = [
-  { type: "item", name: "Dashboard", to: "/" },
+  { type: "item", name: "Dashboard", to: "/dashboard" },
 
   { type: "title", name: "Request" },
+  {
+    type: "item",
+    name: "Tạo yêu cầu mới",
+    to: "/requests/new",
+    permissionKey: "requests/new",              // ✅ đổi
+  },
   {
     type: "item",
     name: "Danh sách yêu cầu",
     to: "/requests",
     permissionKey: "requests",              // ✅ đổi
+  },
+  {
+    type: "item",
+    name: "Theo dõi Requests",
+    to: "/requests/monitor",
+    leadershipOnly: true,
   },
   {
     type: "item",

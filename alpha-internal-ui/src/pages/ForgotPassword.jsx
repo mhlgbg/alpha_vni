@@ -37,13 +37,13 @@ export default function ForgotPassword() {
   }
 
   return (
-    <CContainer className="py-5">
+    <CContainer className="py-5 ai-card ai-form">
       <CRow className="justify-content-center">
         <CCol md={5}>
-          <CCard>
+          <CCard className="ai-card">
             <CCardHeader><b>Alpha Internal</b> — Quên mật khẩu</CCardHeader>
             <CCardBody>
-              <CForm onSubmit={onSubmit}>
+              <CForm onSubmit={onSubmit} className="ai-form">
                 <div className="mb-3">
                   <CFormLabel>Email</CFormLabel>
                   <CFormInput

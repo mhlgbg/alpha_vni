@@ -1,16 +1,17 @@
 import React from "react"
-import { BrowserRouter, Routes, Route } from "react-router-dom"
+import { BrowserRouter, Navigate, Routes, Route } from "react-router-dom"
 import { AuthProvider } from "./contexts/AuthContext"
 import { IamProvider } from "./contexts/IamContext"
 import ProtectedRoute from "./components/ProtectedRoute"
 import RequirePermission from "./components/RequirePermission"
-import AppLayout from "./layout/AppLayout"
+import RequireLeadership from "./components/RequireLeadership"
+import AdminLayout from "./layouts/AdminLayout.jsx"
 import Login from "./pages/Login"
 import ForgotPassword from "./pages/ForgotPassword"
 import ResetPassword from "./pages/ResetPassword"
 import Activate from "./pages/Activate"
 import SetPassword from "./pages/SetPassword"
-import Home from "./pages/Home"
+import DashboardPage from "./pages/dashboard/DashboardPage"
 import Profile from "./pages/Profile"
 import ChangePassword from "./pages/ChangePassword"
 import InviteUser from "./pages/InviteUser"
@@ -18,6 +19,8 @@ import Forbidden403 from "./pages/Forbidden403"
 import RequestListPage from "./pages/requests/RequestListPage.jsx"
 import RequestFormPage from "./pages/requests/RequestFormPage.jsx"
 import RequestDetailPage from "./pages/requests/RequestDetailPage.jsx"
+import RequestMonitorPage from "./pages/requests/RequestMonitorPage"
+import RequestMonitorDetailPage from "./pages/requests/RequestMonitorDetailPage"
 
 import RequestCategories from "./pages/RequestCategories"
 import Users from "./pages/Users"
@@ -38,9 +41,10 @@ export default function App() {
               path="/*"
               element={
                 <ProtectedRoute>
-                  <AppLayout>
+                  <AdminLayout>
                     <Routes>
-                      <Route path="/" element={<Home />} />
+                      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                      <Route path="/dashboard" element={<DashboardPage />} />
                       <Route path="/profile" element={<Profile />} />
                       <Route path="/change-password" element={<ChangePassword />} />
                       <Route path="/403" element={<Forbidden403 />} />
@@ -58,6 +62,22 @@ export default function App() {
                           <RequirePermission permissionKey="requests">
                             <RequestFormPage />
                           </RequirePermission>
+                        }
+                      />
+                      <Route
+                        path="/requests/monitor"
+                        element={
+                          <RequireLeadership>
+                            <RequestMonitorPage />
+                          </RequireLeadership>
+                        }
+                      />
+                      <Route
+                        path="/requests/monitor/:id"
+                        element={
+                          <RequireLeadership>
+                            <RequestMonitorDetailPage />
+                          </RequireLeadership>
                         }
                       />
                       <Route
@@ -101,7 +121,7 @@ export default function App() {
                         }
                       />
                     </Routes>
-                  </AppLayout>
+                  </AdminLayout>
                 </ProtectedRoute>
               }
             />
