@@ -1,4 +1,30 @@
 // import type { Core } from '@strapi/strapi';
+import { initServiceSalesMasterData } from './bootstrap/init-service-sales-master-data';
+
+const WINDOWS_TEMP_UNLINK_EPERM =
+  process.platform === 'win32'
+  && !global.__IGNORE_WINDOWS_TEMP_UNLINK_EPERM__;
+
+if (WINDOWS_TEMP_UNLINK_EPERM) {
+  global.__IGNORE_WINDOWS_TEMP_UNLINK_EPERM__ = true;
+
+  process.on('unhandledRejection', (reason) => {
+    const error = reason as NodeJS.ErrnoException | undefined;
+    const message = String(error?.message || '');
+    const isWindowsTempUnlinkEperm =
+      error?.code === 'EPERM'
+      && error?.syscall === 'unlink'
+      && message.includes('operation not permitted, unlink')
+      && String(error?.path || '').toLowerCase().includes('appdata\\local\\temp');
+
+    if (isWindowsTempUnlinkEperm) {
+      console.warn('[upload] Ignore Windows temp unlink EPERM after upload cleanup:', error?.path);
+      return;
+    }
+
+    throw reason;
+  });
+}
 
 export default {
   /**
@@ -22,24 +48,42 @@ export default {
 
     if (!frontendUrl) {
       strapi.log.warn('[bootstrap] FRONTEND_URL is empty, skip users-permissions reset password URL sync');
-      return;
+    } else {
+      const resetPasswordUrl = `${frontendUrl}/reset-password`;
+
+      const usersPermissionsStore = strapi.store({ type: 'plugin', name: 'users-permissions' });
+      const advanced = ((await usersPermissionsStore.get({ key: 'advanced' })) || {}) as Record<string, unknown>;
+
+      if (!advanced.email_reset_password) {
+        await usersPermissionsStore.set({
+          key: 'advanced',
+          value: {
+            ...advanced,
+            email_reset_password: resetPasswordUrl,
+          },
+        });
+
+        strapi.log.info(`[bootstrap] users-permissions advanced.email_reset_password set to ${resetPasswordUrl}`);
+      }
     }
 
-    const resetPasswordUrl = `${frontendUrl}/reset-password`;
+    const uploadStore = strapi.store({ type: 'plugin', name: 'upload' });
+    const uploadSettings = ((await uploadStore.get({ key: 'settings' })) || {}) as Record<string, unknown>;
 
-    const pluginStore = strapi.store({ type: 'plugin', name: 'users-permissions' });
-    const advanced = ((await pluginStore.get({ key: 'advanced' })) || {}) as Record<string, unknown>;
+    const desiredUploadSettings = {
+      ...uploadSettings,
+      sizeOptimization: false,
+      responsiveDimensions: false,
+    };
 
-    if (!advanced.email_reset_password) {
-      await pluginStore.set({
-        key: 'advanced',
-        value: {
-          ...advanced,
-          email_reset_password: resetPasswordUrl,
-        },
-      });
+    const shouldUpdateUploadSettings =
+      uploadSettings.sizeOptimization !== false || uploadSettings.responsiveDimensions !== false;
 
-      strapi.log.info(`[bootstrap] users-permissions advanced.email_reset_password set to ${resetPasswordUrl}`);
+    if (shouldUpdateUploadSettings) {
+      await uploadStore.set({ key: 'settings', value: desiredUploadSettings });
+      strapi.log.info('[bootstrap] upload.settings updated: sizeOptimization=false, responsiveDimensions=false');
     }
+
+    await initServiceSalesMasterData(strapi);
   },
 };

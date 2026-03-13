@@ -9,6 +9,7 @@
     "deploy": "strapi deploy",
     "dev": "strapi develop",
     "develop": "strapi develop",
+    "admin:create-user": "node ./scripts/create-admin-user.js",
     "seed:example": "node ./scripts/seed.js",
     "test:quick:activate-role": "node --test ./scripts/quick-test-activate-role.js",
     "start": "strapi start",

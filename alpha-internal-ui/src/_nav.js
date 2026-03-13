@@ -1,30 +1,70 @@
 const navigation = [
-  { type: "item", name: "Dashboard", to: "/dashboard" },
+  { type: "item", name: "Dashboard", to: "/dashboard", permissionRole: null },
+
 
   { type: "title", name: "Request" },
   {
     type: "item",
     name: "Tạo yêu cầu mới",
     to: "/requests/new",
-    permissionKey: "requests/new",              // ✅ đổi
+    permissionRole: "Admin",              // ✅ đổi
   },
   {
     type: "item",
     name: "Danh sách yêu cầu",
     to: "/requests",
-    permissionKey: "requests",              // ✅ đổi
+    permissionRole: "Admin",              // ✅ đổi
   },
   {
     type: "item",
     name: "Theo dõi Requests",
     to: "/requests/monitor",
-    leadershipOnly: true,
+    permissionRole: "Admin"
+
   },
   {
     type: "item",
     name: "Loại công việc",
     to: "/request-categories",
-    permissionKey: "request-categories",    // ✅ đổi
+    permissionRole: "Admin",    // ✅ đổi
+  },
+  {
+    type: "item",
+    name: "Positions",
+    to: "/positions",
+    permissionAnyRole: [
+      "Admin",
+      "Sales Manager",
+    ],
+  },
+
+  { type: "title", name: "Service Sales" },
+  {
+    type: "item",
+    name: "Quầy bán hàng",
+    to: "/sales-counter",
+    permissionAnyRole: ["Sales Counter", "Sales Manager"],
+  },
+  {
+    type: "item",
+    name: "Danh sách đơn hàng",
+    to: "/service-orders",
+    //permissionRole: "Admin",          // ✅ đổi
+    permissionAnyRole: [
+      "Admin",
+      "Sales Manager",
+    ],
+  },
+
+  { type: "title", name: "Human Resources" },
+  {
+    type: "item",
+    name: "Employees",
+    to: "/employees",
+    permissionAnyRole: [
+      "Admin",
+      "Sales Manager",
+    ],
   },
 
   { type: "title", name: "Hệ thống" },
@@ -32,19 +72,22 @@ const navigation = [
     type: "item",
     name: "Người dùng",
     to: "/users",
-    permissionKey: "users",                 // ✅ đổi
+    permissionRole: "Admin",                 // ✅ đổi
   },
   {
     type: "item",
     name: "Mời user",
     to: "/invite-user",
-    permissionKey: "invite-user",           // ✅ đổi
+    permissionAnyRole: [
+      "Admin",
+      "Sales Manager",
+    ],        // ✅ đổi
   },
   {
     type: "item",
     name: "Profile",
     to: "/profile",
-    permissionKey: "profile",               // (tuỳ) có thể thêm để đồng bộ
+    permissionRole: null,
   },
 ]
 

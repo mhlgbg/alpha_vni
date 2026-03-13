@@ -24,6 +24,13 @@ import RequestMonitorDetailPage from "./pages/requests/RequestMonitorDetailPage"
 
 import RequestCategories from "./pages/RequestCategories"
 import Users from "./pages/Users"
+import PositionManager from "./pages/hr/PositionManager"
+import EmployeeManager from "./pages/hr/EmployeeManager"
+import EmployeeDetail from "./pages/hr/EmployeeDetail"
+import ServiceOrderListPage from "./pages/service-orders/ServiceOrderListPage"
+import ServiceOrderFormPage from "./pages/service-orders/ServiceOrderFormPage"
+import ServiceOrderDetailPage from "./pages/service-orders/ServiceOrderDetailPage"
+import SalesCounterPage from "./pages/sales-counter/SalesCounterPage"
 
 export default function App() {
   return (
@@ -51,7 +58,7 @@ export default function App() {
                       <Route
                         path="/requests"
                         element={
-                          <RequirePermission permissionKey="requests">
+                          <RequirePermission permissionRole="Admin">
                             <RequestListPage />
                           </RequirePermission>
                         }
@@ -59,7 +66,7 @@ export default function App() {
                       <Route
                         path="/requests/new"
                         element={
-                          <RequirePermission permissionKey="requests">
+                          <RequirePermission permissionRole="Admin">
                             <RequestFormPage />
                           </RequirePermission>
                         }
@@ -67,23 +74,23 @@ export default function App() {
                       <Route
                         path="/requests/monitor"
                         element={
-                          <RequireLeadership>
+                          <RequirePermission permissionRole="Admin">
                             <RequestMonitorPage />
-                          </RequireLeadership>
+                          </RequirePermission>
                         }
                       />
                       <Route
                         path="/requests/monitor/:id"
                         element={
-                          <RequireLeadership>
+                          <RequirePermission permissionRole="Admin">
                             <RequestMonitorDetailPage />
-                          </RequireLeadership>
+                          </RequirePermission>
                         }
                       />
                       <Route
                         path="/requests/:id"
                         element={
-                          <RequirePermission permissionKey="requests">
+                          <RequirePermission permissionRole="Admin">
                             <RequestDetailPage />
                           </RequirePermission>
                         }
@@ -91,7 +98,7 @@ export default function App() {
                       <Route
                         path="/requests/:id/edit"
                         element={
-                          <RequirePermission permissionKey="requests">
+                          <RequirePermission permissionRole="Admin">
                             <RequestFormPage />
                           </RequirePermission>
                         }
@@ -99,15 +106,80 @@ export default function App() {
                       <Route
                         path="/request-categories"
                         element={
-                          <RequirePermission permissionKey="request-categories">
+                          <RequirePermission permissionRole="Admin">
                             <RequestCategories />
+                          </RequirePermission>
+                        }
+                      />
+                      <Route
+                        path="/positions"
+                        element={
+                          <RequirePermission permissionAnyRole={["Admin", "Sales Manager"]}>
+                            <PositionManager />
+                          </RequirePermission>
+                        }
+                      />
+                      <Route
+                        path="/employees"
+                        element={
+                          <RequirePermission permissionAnyRole={["Admin", "Sales Manager"]}>
+                            <EmployeeManager />
+                          </RequirePermission>
+                        }
+                      />
+                      <Route
+                        path="/employees/:id"
+                        element={
+                          <RequirePermission permissionAnyRole={["Admin", "Sales Manager"]}>
+                            <EmployeeDetail />
+                          </RequirePermission>
+                        }
+                      />
+                      <Route
+                        path="/sales-counter"
+                        element={
+                          <RequirePermission permissionAnyRole={["Sales Counter", "Sales Manager"
+                          ]}>
+                            <SalesCounterPage />
+                          </RequirePermission>
+                        }
+                      />
+                      <Route
+                        path="/service-orders"
+                        element={
+                          <RequirePermission permissionAnyRole={["Admin", "Sales Manager"]}>
+                            <ServiceOrderListPage />
+                          </RequirePermission>
+                        }
+                      />
+                      <Route
+                        path="/service-orders/create"
+                        element={
+                          <RequirePermission permissionAnyRole={["Admin", "Sales Manager"]}>
+                            <ServiceOrderFormPage />
+                          </RequirePermission>
+                        }
+                      />
+                      <Route
+                        path="/service-orders/:id"
+                        element={
+                          <RequirePermission permissionAnyRole={["Admin", "Sales Manager"]}>
+                            <ServiceOrderDetailPage />
+                          </RequirePermission>
+                        }
+                      />
+                      <Route
+                        path="/service-orders/:id/edit"
+                        element={
+                          <RequirePermission permissionAnyRole={["Admin", "Sales Manager"]}>
+                            <ServiceOrderFormPage />
                           </RequirePermission>
                         }
                       />
                       <Route
                         path="/users"
                         element={
-                          <RequirePermission permissionKey="users">
+                          <RequirePermission permissionAnyRole={["Admin"]}>
                             <Users />
                           </RequirePermission>
                         }
@@ -115,7 +187,7 @@ export default function App() {
                       <Route
                         path="/invite-user"
                         element={
-                          <RequirePermission permissionKey="invite-user">
+                          <RequirePermission permissionAnyRole={["Admin", "Sales Manager"]}>
                             <InviteUser />
                           </RequirePermission>
                         }

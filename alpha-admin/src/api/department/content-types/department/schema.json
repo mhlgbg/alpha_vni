@@ -14,6 +14,10 @@
     "name": {
       "type": "string"
     },
+    "code": {
+      "type": "string",
+      "unique": true
+    },
     "slug": {
       "type": "uid",
       "targetField": "name"
@@ -32,6 +36,15 @@
     },
     "description": {
       "type": "text"
+    },
+    "sortOrder": {
+      "type": "integer",
+      "default": 0
+    },
+    "manager": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::employee.employee"
     },
     "children": {
       "type": "relation",

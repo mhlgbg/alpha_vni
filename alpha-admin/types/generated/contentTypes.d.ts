@@ -638,6 +638,58 @@ export interface ApiCategoryCategory extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiCustomerCustomer extends Struct.CollectionTypeSchema {
+  collectionName: 'customers';
+  info: {
+    displayName: 'Customer';
+    pluralName: 'customers';
+    singularName: 'customer';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    address: Schema.Attribute.Text;
+    allowDebt: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    code: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    customerType: Schema.Attribute.Enumeration<
+      ['RETAIL', 'COMPANY', 'INTERNAL', 'OTHER']
+    > &
+      Schema.Attribute.DefaultTo<'RETAIL'>;
+    debtLimit: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
+    isActive: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    isDefaultRetailGuest: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::customer.customer'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    note: Schema.Attribute.Text;
+    payment_transactions: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::payment-transaction.payment-transaction'
+    >;
+    phone: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    service_orders: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::service-order.service-order'
+    >;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    zalo: Schema.Attribute.String;
+  };
+}
+
 export interface ApiDepartmentMembershipDepartmentMembership
   extends Struct.CollectionTypeSchema {
   collectionName: 'department_memberships';
@@ -701,6 +753,7 @@ export interface ApiDepartmentDepartment extends Struct.CollectionTypeSchema {
       'oneToMany',
       'api::department.department'
     >;
+    code: Schema.Attribute.String & Schema.Attribute.Unique;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -712,6 +765,7 @@ export interface ApiDepartmentDepartment extends Struct.CollectionTypeSchema {
       'api::department.department'
     > &
       Schema.Attribute.Private;
+    manager: Schema.Attribute.Relation<'manyToOne', 'api::employee.employee'>;
     name: Schema.Attribute.String;
     parent: Schema.Attribute.Relation<
       'manyToOne',
@@ -723,9 +777,131 @@ export interface ApiDepartmentDepartment extends Struct.CollectionTypeSchema {
       ['GROUP', 'COMPANY', 'DEPARTMENT', 'TEAM']
     >;
     slug: Schema.Attribute.UID<'name'>;
+    sortOrder: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+  };
+}
+
+export interface ApiEmployeeHistoryEmployeeHistory
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'employee_histories';
+  info: {
+    displayName: 'Employee History';
+    pluralName: 'employee-histories';
+    singularName: 'employee-history';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    assignmentType: Schema.Attribute.Enumeration<
+      ['official', 'concurrent', 'temporary', 'promotion', 'transfer']
+    > &
+      Schema.Attribute.DefaultTo<'official'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    decisionNo: Schema.Attribute.String;
+    department: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::department.department'
+    > &
+      Schema.Attribute.Required;
+    employee: Schema.Attribute.Relation<'manyToOne', 'api::employee.employee'> &
+      Schema.Attribute.Required;
+    endDate: Schema.Attribute.Date;
+    isCurrent: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    isPrimary: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::employee-history.employee-history'
+    > &
+      Schema.Attribute.Private;
+    manager: Schema.Attribute.Relation<'manyToOne', 'api::employee.employee'>;
+    note: Schema.Attribute.Text;
+    position: Schema.Attribute.Relation<'manyToOne', 'api::position.position'> &
+      Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    startDate: Schema.Attribute.Date & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiEmployeeEmployee extends Struct.CollectionTypeSchema {
+  collectionName: 'employees';
+  info: {
+    displayName: 'Employee';
+    pluralName: 'employees';
+    singularName: 'employee';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    address: Schema.Attribute.Text;
+    avatar: Schema.Attribute.Media<'images'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    currentDepartment: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::department.department'
+    >;
+    currentManager: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::employee.employee'
+    >;
+    currentPosition: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::position.position'
+    >;
+    dateOfBirth: Schema.Attribute.Date;
+    employeeCode: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    fullName: Schema.Attribute.String & Schema.Attribute.Required;
+    gender: Schema.Attribute.Enumeration<['male', 'female', 'other']>;
+    identityIssueDate: Schema.Attribute.Date;
+    identityIssuePlace: Schema.Attribute.String;
+    identityNumber: Schema.Attribute.String;
+    joinDate: Schema.Attribute.Date;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::employee.employee'
+    > &
+      Schema.Attribute.Private;
+    note: Schema.Attribute.Text;
+    officialDate: Schema.Attribute.Date;
+    personalEmail: Schema.Attribute.Email;
+    phone: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    status: Schema.Attribute.Enumeration<
+      [
+        'draft',
+        'active',
+        'probation',
+        'official',
+        'maternity_leave',
+        'unpaid_leave',
+        'resigned',
+        'retired',
+      ]
+    > &
+      Schema.Attribute.DefaultTo<'active'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    workEmail: Schema.Attribute.Email;
   };
 }
 
@@ -874,6 +1050,90 @@ export interface ApiLeadLead extends Struct.CollectionTypeSchema {
       'manyToOne',
       'api::vehicle-type.vehicle-type'
     >;
+  };
+}
+
+export interface ApiPaymentTransactionPaymentTransaction
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'payment_transactions';
+  info: {
+    displayName: 'Payment Transaction';
+    pluralName: 'payment-transactions';
+    singularName: 'payment-transaction';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    amount: Schema.Attribute.Decimal & Schema.Attribute.Required;
+    collectedBy: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::employee.employee'
+    >;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    customer: Schema.Attribute.Relation<'manyToOne', 'api::customer.customer'>;
+    department: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::department.department'
+    >;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::payment-transaction.payment-transaction'
+    > &
+      Schema.Attribute.Private;
+    method: Schema.Attribute.Enumeration<
+      ['CASH', 'TRANSFER', 'MOMO', 'OTHER']
+    > &
+      Schema.Attribute.DefaultTo<'CASH'>;
+    note: Schema.Attribute.Text;
+    order: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::service-order.service-order'
+    >;
+    paidAt: Schema.Attribute.DateTime & Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiPositionPosition extends Struct.CollectionTypeSchema {
+  collectionName: 'positions';
+  info: {
+    displayName: 'Position';
+    pluralName: 'positions';
+    singularName: 'position';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    code: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.Text;
+    isActive: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    isLeadership: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    level: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<1>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::position.position'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    slug: Schema.Attribute.UID<'name'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
   };
 }
 
@@ -1166,6 +1426,200 @@ export interface ApiRoleFeatureRoleFeature extends Struct.CollectionTypeSchema {
       'plugin::users-permissions.role'
     > &
       Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiServiceCategoryServiceCategory
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'service_categories';
+  info: {
+    displayName: 'Service Category';
+    pluralName: 'service-categories';
+    singularName: 'service-category';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    code: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.Text;
+    isActive: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::service-category.service-category'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    service_items: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::service-item.service-item'
+    >;
+    sortOrder: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiServiceItemServiceItem extends Struct.CollectionTypeSchema {
+  collectionName: 'service_items';
+  info: {
+    displayName: 'Service Item';
+    pluralName: 'service-items';
+    singularName: 'service-item';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    category: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::service-category.service-category'
+    >;
+    code: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    defaultPrice: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
+    description: Schema.Attribute.Text;
+    isActive: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::service-item.service-item'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    service_order_items: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::service-order-item.service-order-item'
+    >;
+    sortOrder: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    unit: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiServiceOrderItemServiceOrderItem
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'service_order_items';
+  info: {
+    displayName: 'Service Order Item';
+    pluralName: 'service-order-items';
+    singularName: 'service-order-item';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    amount: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
+    attachments: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios',
+      true
+    >;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.Text;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::service-order-item.service-order-item'
+    > &
+      Schema.Attribute.Private;
+    note: Schema.Attribute.Text;
+    order: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::service-order.service-order'
+    >;
+    publishedAt: Schema.Attribute.DateTime;
+    quantity: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<1>;
+    serviceItem: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::service-item.service-item'
+    >;
+    sortOrder: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    unitPrice: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiServiceOrderServiceOrder
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'service_orders';
+  info: {
+    displayName: 'Service Order';
+    pluralName: 'service-orders';
+    singularName: 'service-order';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    assignedEmployee: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::employee.employee'
+    >;
+    code: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    customer: Schema.Attribute.Relation<'manyToOne', 'api::customer.customer'>;
+    debtAmount: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
+    deliveredAt: Schema.Attribute.DateTime;
+    department: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::department.department'
+    >;
+    description: Schema.Attribute.Text;
+    items: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::service-order-item.service-order-item'
+    >;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::service-order.service-order'
+    > &
+      Schema.Attribute.Private;
+    note: Schema.Attribute.Text;
+    orderDate: Schema.Attribute.DateTime & Schema.Attribute.Required;
+    paidAmount: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
+    payments: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::payment-transaction.payment-transaction'
+    >;
+    paymentStatus: Schema.Attribute.Enumeration<['UNPAID', 'PARTIAL', 'PAID']> &
+      Schema.Attribute.DefaultTo<'UNPAID'>;
+    publishedAt: Schema.Attribute.DateTime;
+    source: Schema.Attribute.Enumeration<
+      ['ZALO', 'DIRECT', 'PHONE', 'FACEBOOK', 'OTHER']
+    > &
+      Schema.Attribute.DefaultTo<'DIRECT'>;
+    status: Schema.Attribute.Enumeration<
+      ['NEW', 'PROCESSING', 'READY', 'DELIVERED', 'CANCELLED']
+    > &
+      Schema.Attribute.DefaultTo<'NEW'>;
+    totalAmount: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1841,18 +2295,27 @@ declare module '@strapi/strapi' {
       'api::article.article': ApiArticleArticle;
       'api::author.author': ApiAuthorAuthor;
       'api::category.category': ApiCategoryCategory;
+      'api::customer.customer': ApiCustomerCustomer;
       'api::department-membership.department-membership': ApiDepartmentMembershipDepartmentMembership;
       'api::department.department': ApiDepartmentDepartment;
+      'api::employee-history.employee-history': ApiEmployeeHistoryEmployeeHistory;
+      'api::employee.employee': ApiEmployeeEmployee;
       'api::feature-group.feature-group': ApiFeatureGroupFeatureGroup;
       'api::feature.feature': ApiFeatureFeature;
       'api::global.global': ApiGlobalGlobal;
       'api::lead.lead': ApiLeadLead;
+      'api::payment-transaction.payment-transaction': ApiPaymentTransactionPaymentTransaction;
+      'api::position.position': ApiPositionPosition;
       'api::request-assignee.request-assignee': ApiRequestAssigneeRequestAssignee;
       'api::request-category.request-category': ApiRequestCategoryRequestCategory;
       'api::request-message.request-message': ApiRequestMessageRequestMessage;
       'api::request-tag.request-tag': ApiRequestTagRequestTag;
       'api::request.request': ApiRequestRequest;
       'api::role-feature.role-feature': ApiRoleFeatureRoleFeature;
+      'api::service-category.service-category': ApiServiceCategoryServiceCategory;
+      'api::service-item.service-item': ApiServiceItemServiceItem;
+      'api::service-order-item.service-order-item': ApiServiceOrderItemServiceOrderItem;
+      'api::service-order.service-order': ApiServiceOrderServiceOrder;
       'api::setting.setting': ApiSettingSetting;
       'api::vehicle-type.vehicle-type': ApiVehicleTypeVehicleType;
       'api::vehicle.vehicle': ApiVehicleVehicle;

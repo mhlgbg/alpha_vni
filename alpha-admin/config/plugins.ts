@@ -34,6 +34,11 @@ if (!global.__SMTP_DEBUG_PATCHED__) {
 }
 
 export default ({ env }) => ({
+  upload: {
+    config: {
+      sizeLimit: 20 * 1024 * 1024,
+    },
+  },
   email: {
     config: {
       provider: "@strapi/provider-email-nodemailer",
